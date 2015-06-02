@@ -14,8 +14,8 @@
 	
 		function lookup() {
 
-			var xdiEndpointUri = $("#xdiEndpointUri").val();
-			var identifier = $("#identifier").val();
+			var xdiEndpointUri = $("#xdiEndpointUri").val().trim();
+			var identifier = $("#identifier").val().trim();
 
 			var message = xdi.message("$anon");
 			message.operation("$get", "*!(" + identifier + ")");
@@ -26,11 +26,12 @@
 				function(response) {
 					var statements = response.statements();
 					var identifiers = [identifier];
-					$("#result1").html("");
-					$("#result2").html(_.escape(response.serializeXDIDISPLAY()).replace(/\n/g, "<br>"));
+					$("#result1").html("<h2>Identifiers</h2>");
+					$("#result2").html("<h2>XDI Graph</h2>");
+					$("#result2").append(_.escape(response.serializeXDIDISPLAY()).replace(/\n/g, "<br>"));
 					for (var i in statements) {
-						if (statements[i].predicate().string() === '$is') identifiers.push(statements[i].subject().string().slice(3, -1));
-						if (statements[i].predicate().string() === '$is') identifiers.push(statements[i].object().string().slice(3, -1));
+						if (statements[i].predicate().string() === '$is$ref') identifiers.push(statements[i].subject().string().slice(3, -1));
+						if (statements[i].predicate().string() === '$is$ref') identifiers.push(statements[i].object().string().slice(3, -1));
 					}
 					identifiers = _.uniq(identifiers);
 					for (var i in identifiers) {
@@ -66,18 +67,14 @@
 </tr>
 <tr>
   <td>Lookup Identifier:</td>
-  <td><input type="text" id="identifier" class="topcoat-text-input--large text" value='https://phaidra.univie.ac.at/o:328206'></td>
+  <td><input type="text" id="identifier" class="topcoat-text-input--large text" value="https://phaidra.univie.ac.at/o:328206"></td>
 </tr>
 </table>
 
 <p><button onclick="lookup();" class="topcoat-button--large--cta">Lookup</button>
 <button onclick="clear();" class="topcoat-button--large--cta">Clear</button></p>
 
-<h2>Identifiers</h2>
-
 <div class="result" id="result1"></div>
-
-<h2>XDI Graph</h2>
 
 <div class="result" id="result2"></div>
 
