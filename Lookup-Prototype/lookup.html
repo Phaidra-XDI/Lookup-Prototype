@@ -1,70 +1,81 @@
 <html>
+
 <head>
-<title>Lookup</title>
-<script type="text/javascript">
-function select_all(){
-		document.getElementById('item_1').checked='checked';
-		document.getElementById('item_2').checked='checked';
-		document.getElementById('item_3').checked='checked';
-}
-</script>
+	<title>Phaidra XDI Lookup Service</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+	<link href="css/style.css" media="all" rel="stylesheet" />
+	<link href="css/topcoat.css" media="all" rel="stylesheet" />
+
+	<script type="text/javascript" src="js/jquery-2.0.3.min.js"></script>
+	<script type="text/javascript" src="js/lodash.compat.min.js"></script>
+	<script type="text/javascript" src="xdi.js"></script>
+	
+	<script type="text/javascript">
+	
+		function lookup() {
+
+			var xdiEndpointUri = $("#xdiEndpointUri").val().trim();
+			var identifier = $("#identifier").val().trim();
+
+			var message = xdi.message("$anon");
+			message.operation("$get", "*!(" + identifier + ")");
+		
+			message.send(
+		
+				xdiEndpointUri,
+				function(response) {
+					var statements = response.statements();
+					var identifiers = [identifier];
+					$("#result1").html("<h2>Identifiers</h2>");
+					$("#result2").html("<h2>XDI Graph</h2>");
+					$("#result2").append(_.escape(response.serializeXDIDISPLAY()).replace(/\n/g, "<br>"));
+					for (var i in statements) {
+						if (statements[i].predicate().string() === '$is$ref') identifiers.push(statements[i].subject().string().slice(3, -1));
+						if (statements[i].predicate().string() === '$is$ref') identifiers.push(statements[i].object().string().slice(3, -1));
+					}
+					identifiers = _.uniq(identifiers);
+					for (var i in identifiers) {
+						$("#result1").append(_.escape(identifiers[i]) + "<br>");
+					}
+				},
+				function(errorText) {
+					alert(errorText);
+				}
+			);
+		}
+		
+		function clear() {
+
+			$("#result1").html("");
+			$("#result2").html("");
+		}
+	
+	</script>
+
 </head>
+
 <body>
-	<div align="center">
-		<h2>Phaidra Identifiers Registration Prototype System</h2>
-		<form action="post">	
-			<table width="80%" border="1">
-				<tr>
-					<th></th>
-					<th>PID</th>
-					<th>Phaidra URL</th>
-					<th>URN:NBN</th>
-					<th>AC-number</th>
-					<th>Handle</th>
-					<th>DOI</th>
-					<th>Ticket</th>
-				</tr>
-				<tr>
-					<td><input type="checkbox" id="item_1"></td>
-					<td id="pid_1">o:328142</td>
-					<td id="url_1">https://phaidra.univie.ac.at/</td>
-					<td id="urn_1">urn:nbn:at:at-ubw-18132.71955.861062-4</td>
-					<td id="ac_1">AC00210071</td>
-					<td id="handle_1"></td>
-					<td id="doi_1"></td>
-					<td id="ticket_1">3683</td>
-				</tr>
-				<tr>
-					<td><input type="checkbox" id="item_2"></td>
-					<td id="pid_2">o:183842</td>
-					<td id="url_2">https://phaidra.univie.ac.at/</td>
-					<td id="urn_2"></td>
-					<td id="ac_2">AC00336043</td>
-					<td id="handle_2"></td>
-					<td id="doi_2"></td>
-					<td  id="ticket_2"></td>
-				</tr>
-				<tr>
-					<td><input type="checkbox" id="item_3"></td>
-					<td id="pid_3">o:192017</td>
-					<td id="url_3">https://phaidra.univie.ac.at/</td>
-					<td id="urn_3">urn:nbn:at:at-ubw-18140.45186.205770-3</td>
-					<td id="ac_3">AC00396693</td>
-					<td id="handle_3"></td>
-					<td id="doi_2"></td>
-					<td  id="ticket_3"></td>
-				</tr>
-			</table>
-			<p>
-				<input type="button" value="Select all items" id="select_1" onclick="select_all();">
-				<input type="reset" value="Unselect all items">
-				<input type="submit" value="Look up all IDs of the selected items" onclick="">
-				<input type="button" value="Show selected items and their relationships in XDI graph" onclick="">
-				
-			</p>
-		</form>
-		<iframe width="80%" height="80%" src="http://projectdanube.github.io/xdi-grapheditor/xdi-grapheditor/public_html/index.html"></iframe>
-	</div>
+
+<h1>Phaidra XDI Lookup Service</h1>
+
+<table>
+<tr>
+  <td>XDI Registry Server:</td>
+  <td><input type="text" id="xdiEndpointUri" value="http://localhost:8080/mem-graph" class="topcoat-text-input--large text"></td>
+</tr>
+<tr>
+  <td>Lookup Identifier:</td>
+  <td><input type="text" id="identifier" class="topcoat-text-input--large text" value="https://phaidra.univie.ac.at/o:183842"></td>
+</tr>
+</table>
+
+<p><button onclick="lookup();" class="topcoat-button--large--cta">Lookup</button>
+<button onclick="clear();" class="topcoat-button--large--cta">Clear</button></p>
+
+<div class="result" id="result1"></div>
+
+<div class="result" id="result2"></div>
+
 </body>
 
 </html>
